@@ -1,0 +1,22 @@
+services:
+  gateway:
+    build: .
+    container_name: rtp-merge-gateway
+    ports:
+      - "8000:8000"        # HTTP / Swagger UI
+      - "5004:5004/udp"    # 线路 1 收包
+      - "5006:5006/udp"    # 线路 2 收包
+      - "6000:6000/udp"    # UDP 出口（内置监视器同端口）
+    environment:
+      LINE1_PORT: "5004"
+      LINE2_PORT: "5006"
+      OUTPUT_HOST: "127.0.0.1"   # 解码器地址；默认指向内置监视器便于演示
+      OUTPUT_PORT: "6000"
+      MONITOR_PORT: "6000"
+      TIMEOUT_MS: "50"           # 待发包最长等待
+      BUFFER_MAX: "128"          # 待发包缓存上限
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8000/stats')"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
